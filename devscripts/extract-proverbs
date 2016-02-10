@@ -5,16 +5,24 @@ use strict;
 use warnings;
 
 use File::Slurper qw(read_text);
+use HTML::Entities;
 
 binmode STDOUT, ":utf8";
 
 my @w;
 
-for my $file ("../devdata/French_proverbs") {
+for my $file (glob "../devdata/[0-9]*") {
     my $ct = read_text $file;
-    while ($ct =~ m!^<ul>\n^<li><i>(.+?)</i>!mgs) {
-        push @w, $1;
+    while ($ct =~ m!<h2 id="post-\d+"><a[^>]+>(.+?)</a></h2>!mgs) {
+        push @w, decode_entities($1);
     }
+}
+
+for (@w) {
+    # strip quotation source (person name)
+    s/\s*\([^)]+\)$//;
+    # strip duplication/error on the web-page
+    s!</?h2>.+!!;
 }
 
 say for sort @w;
